@@ -10,20 +10,60 @@ dotnet tool install -g Loopia.Console
 
 ## Authentication
 
-Create an API user in the Loopia Customer Zone or Reseller Zone under **Account settings → LoopiaAPI**, then set it as environment variables:
+Create an API user in the Loopia Customer Zone or Reseller Zone under **Account settings → LoopiaAPI**.
+
+### Stored accounts (recommended)
+
+Save each set of credentials once under a name, then pick one per command with `--account`:
+
+```bash
+loopia account create ivy      --username ivy@loopiaapi
+loopia account create filestar --username filestar@loopiaapi
+loopia account create bosma    --username bosma@loopiaapi --default
+
+loopia domains list --account ivy
+loopia records list --account filestar --domain example.com --subdomain @
+loopia domains list -a bosma
+```
+
+Leaving out `--password` prompts for it without echoing it. Passwords are never written in
+plain text: on Windows they are encrypted with DPAPI, bound to the current Windows user, and
+on Linux and macOS with AES-GCM using a key file that only your account can read. The store
+lives at `%APPDATA%\loopia\accounts.json` (`~/.config/loopia/accounts.json` on Linux and
+macOS); `LOOPIA_CONFIG_DIR` moves it elsewhere.
+
+Because the encryption is tied to your user account, the store is not portable — copy it to
+another machine or user and the passwords will no longer decrypt.
+
+```bash
+loopia account list            # show the stored accounts, never their passwords
+loopia account list --paths    # also show where they live and how they are encrypted
+loopia account delete ivy      # remove one
+```
+
+When no `--account` is given, the CLI uses the account marked `--default`, or the only stored
+account when there is just one. `LOOPIA_ACCOUNT` selects an account too.
+
+### Environment variables
 
 ```bash
 export LOOPIA_API_USERNAME=user@loopiaapi
 export LOOPIA_API_PASSWORD=your-password
 ```
 
-Or pass the credentials directly:
+### Command-line options
 
 ```bash
 loopia domains list --username user@loopiaapi --password your-password
 ```
 
-Resellers acting on a customer's account can supply a customer number via `--customer-number` or `LOOPIA_CUSTOMER_NUMBER`. The endpoint defaults to `https://api.loopia.se/RPCSERV` and can be overridden with `--endpoint` or `LOOPIA_API_ENDPOINT`.
+Credentials are resolved in that order of precedence: explicit options first, then the
+selected stored account, then the environment variables.
+
+Resellers acting on a customer's account can supply a customer number via `--customer-number`,
+`LOOPIA_CUSTOMER_NUMBER` or `loopia account create --customer-number`. The endpoint defaults to
+`https://api.loopia.se/RPCSERV` and can be overridden with `--endpoint`, `LOOPIA_API_ENDPOINT`
+or `loopia account create --endpoint`.
 
 ## Usage
 
@@ -35,6 +75,10 @@ loopia <command> [options]
 
 | Command | Description |
 |---------|-------------|
+| **Accounts** | |
+| `account list` | List the stored accounts |
+| `account create` | Store the credentials of a Loopia account under a name |
+| `account delete` | Delete a stored account |
 | **Domains** | |
 | `domains list` | List all domain names in the account |
 | `domains get` | Get billing and registration details for a domain |

@@ -1,8 +1,10 @@
+using Loopia.Console.Commands.Accounts;
 using Loopia.Console.Commands.Billing;
 using Loopia.Console.Commands.Domains;
 using Loopia.Console.Commands.Records;
 using Loopia.Console.Commands.Reseller;
 using Loopia.Console.Commands.Subdomains;
+using Spectre.Console;
 using Spectre.Console.Cli;
 
 var app = new CommandApp();
@@ -10,6 +12,32 @@ var app = new CommandApp();
 app.Configure(config =>
 {
     config.SetApplicationName("loopia");
+
+    // Credential and account-store problems are ordinary user errors, not crashes.
+    config.SetExceptionHandler((ex, _) =>
+    {
+        // Keep Spectre's own rendering for usage errors, but report credential and
+        // account-store problems as plain messages instead of a stack trace.
+        if (ex is CommandAppException { Pretty: { } pretty })
+        {
+            AnsiConsole.Write(pretty);
+            return -1;
+        }
+
+        AnsiConsole.MarkupLineInterpolated($"[red]{ex.Message}[/]");
+        return 1;
+    });
+
+    config.AddBranch("account", account =>
+    {
+        account.SetDescription("Manage stored credentials for your Loopia accounts");
+        account.AddCommand<AccountListCommand>("list")
+            .WithDescription("List the stored accounts");
+        account.AddCommand<AccountCreateCommand>("create")
+            .WithDescription("Store the credentials of a Loopia account under a name");
+        account.AddCommand<AccountDeleteCommand>("delete")
+            .WithDescription("Delete a stored account");
+    });
 
     config.AddBranch("domains", domains =>
     {
