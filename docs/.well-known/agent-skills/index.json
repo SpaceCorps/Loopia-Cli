@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills": [
+    {
+      "name": "loopia-cli",
+      "description": "Manage domain registrations, configure subdomains, update DNS zone records, inspect invoices, and automate reseller operations via native Rust CLI over Loopia XML-RPC API.",
+      "type": "skill-md",
+      "url": "https://spacecorps.github.io/Loopia-Cli/llms.txt"
+    }
+  ]
+}

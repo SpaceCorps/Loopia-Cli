@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loopia CLI | Fast Native CLI for Loopia XML-RPC in Rust</title>
+  <meta name="description" content="A blazing fast native command-line tool and agent interface for the Loopia XML-RPC API, written in Rust. Manage domains, subdomains, DNS records, billing, and reseller accounts from your terminal.">
+  <link rel="canonical" href="https://spacecorps.github.io/Loopia-Cli/">
+  <meta name="is-agentic-site-type" content="content">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="keywords" content="Loopia, CLI, Rust, DNS, domain management, XML-RPC, zone records, nameservers, AI agents, DevOps">
+  <meta name="author" content="SpaceCorps">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://spacecorps.github.io/Loopia-Cli/">
+  <meta property="og:title" content="Loopia CLI | Fast Native CLI for Loopia XML-RPC in Rust">
+  <meta property="og:description" content="A blazing fast native command-line tool and agent interface for the Loopia XML-RPC API, written in Rust.">
+  <meta property="og:image" content="https://spacecorps.github.io/Loopia-Cli/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Loopia CLI — Native Rust Command Line Tool">
+  <meta property="og:site_name" content="Loopia CLI">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://spacecorps.github.io/Loopia-Cli/">
+  <meta name="twitter:title" content="Loopia CLI | Fast Native CLI for Loopia XML-RPC in Rust">
+  <meta name="twitter:description" content="A blazing fast native command-line tool and agent interface for the Loopia XML-RPC API, written in Rust.">
+  <meta name="twitter:image" content="https://spacecorps.github.io/Loopia-Cli/og-image.png">
+
+  <!-- AI Agents & Discovery -->
+  <link rel="alternate" type="text/markdown" href="https://spacecorps.github.io/Loopia-Cli/index.md" title="Markdown Homepage">
+  <link rel="alternate" type="text/markdown" href="https://spacecorps.github.io/Loopia-Cli/llms.txt" title="LLMs.txt">
+  <link rel="sitemap" type="application/xml" href="https://spacecorps.github.io/Loopia-Cli/sitemap.xml" title="Sitemap">
+  <script>
+    if (new URLSearchParams(window.location.search).get('mode') === 'agent') {
+      window.location.href = 'llms.txt';
+    }
+  </script>
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "Loopia CLI",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "macOS, Linux, Windows",
+        "url": "https://spacecorps.github.io/Loopia-Cli/",
+        "description": "A blazing fast native command-line tool and agent interface for the Loopia XML-RPC API, written in Rust.",
+        "softwareVersion": "1.0.0",
+        "downloadUrl": "https://github.com/SpaceCorps/Loopia-Cli/releases/tag/v1.0.0",
+        "license": "https://opensource.org/licenses/MIT",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Organization",
+          "name": "SpaceCorps",
+          "url": "https://github.com/SpaceCorps"
+        }
+      },
+      {
+        "@type": "Organization",
+        "name": "SpaceCorps",
+        "url": "https://github.com/SpaceCorps",
+        "sameAs": [
+          "https://github.com/SpaceCorps/Loopia-Cli",
+          "https://github.com/SpaceCorps"
+        ],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "url": "https://github.com/SpaceCorps/Loopia-Cli/issues"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "US"
+        }
+      }
+    ]
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #090d16;
+      --bg-card: rgba(22, 27, 46, 0.7);
+      --bg-card-hover: rgba(30, 38, 66, 0.85);
+      --border: rgba(255, 255, 255, 0.1);
+      --border-accent: rgba(99, 102, 241, 0.35);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.2);
+      --accent-cyan: #38bdf8;
+      --code-bg: #0d1117;
+      --green: #22c55e;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background gradient glow */
+    body::before {
+      content: "";
+      position: fixed;
+      top: -20%;
+      left: 20%;
+      width: 60vw;
+      height: 60vh;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(56, 189, 248, 0.05) 50%, transparent 80%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(9, 13, 22, 0.8);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #6366f1, #38bdf8);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .btn-github {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .btn-github:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+
+    .hero {
+      text-align: center;
+      max-width: 860px;
+      margin: 40px auto 80px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid var(--border-accent);
+      color: #a5b4fc;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: 3.4rem;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 24px;
+      background: linear-gradient(to right, #ffffff, #cbd5e1, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+
+    .quick-install {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      margin-bottom: 40px;
+    }
+
+    .quick-install code {
+      color: var(--accent-cyan);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+      margin-bottom: 80px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: all 0.25s ease;
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid var(--border-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+
+    .card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .section-title h2 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .section-title p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .commands-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 80px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      padding: 16px 24px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td code {
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.08);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+    }
+
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 60px 24px;
+      margin-top: 80px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--text);
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.4rem; }
+      .hero p { font-size: 1.1rem; }
+      .nav-links { display: none; }
+      .quick-install { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="./" class="logo">
+        <span>🌐 Loopia CLI</span>
+        <span class="logo-badge">Rust 2024</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#commands">Commands</a>
+        <a href="auth.md">Authentication</a>
+        <a href="pricing.md">Pricing</a>
+        <a href="llms.txt">llms.txt</a>
+        <a href="https://github.com/SpaceCorps/Loopia-Cli" class="btn-github" target="_blank" rel="noopener noreferrer">
+          GitHub
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-badge">⚡ SpaceCorps Native CLI · Loopia XML-RPC API</div>
+      <h1>The High-Performance Native Loopia CLI for Humans & AI Agents</h1>
+      <p>A standalone, static binary written in Rust 2024. Manage domain registrations, DNS zone records, billing, and reseller accounts in 1–3 ms with native OS keystore security.</p>
+      <div class="quick-install">
+        <code>cargo install --git https://github.com/SpaceCorps/Loopia-Cli --locked</code>
+      </div>
+    </section>
+
+    <section id="features" class="features-grid">
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h3>Blazing Native Speed</h3>
+        <p>1–3 ms cold-start execution with zero runtime dependencies. No .NET runtime or interpreter required, ideal for shell scripts and rapid agent tool calls.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🌐</div>
+        <h3>Full Domain & Zone DNS Control</h3>
+        <p>Complete lifecycle management for domains, subdomains, nameserver delegation, and zone records across A, AAAA, CNAME, MX, TXT, NS, SRV, and CAA.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <h3>Hardware-Backed Keystore</h3>
+        <p>Passwords never land on disk in plaintext. Integrated natively with macOS Keychain, Windows DPAPI, and Linux Secret Service.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <h3>AI Agent Native</h3>
+        <p>Built-in <code>agent-readme</code>, human-readable YAML by default, raw structured JSON with <code>--json</code>, and deterministic numeric exit codes with error envelopes.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💳</div>
+        <h3>Billing & Invoices</h3>
+        <p>Inspect LoopiaPrePAID balances, query unpaid invoices, retrieve invoice details, and pay invoices instantly using account credits.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏢</div>
+        <h3>Reseller Operations</h3>
+        <p>Complete support for Loopia Reseller accounts: list customer accounts, provision new accounts with contact records, track orders, and transfer credits.</p>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="section-title">
+        <h2>Command Reference</h2>
+        <p>Comprehensive CLI operations matching Loopia XML-RPC API endpoints.</p>
+      </div>
+
+      <div class="commands-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Description</th>
+              <th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>accounts list</code></td>
+              <td>List configured accounts and active keystore</td>
+              <td><code>loopia accounts list</code></td>
+            </tr>
+            <tr>
+              <td><code>accounts add</code></td>
+              <td>Save credentials securely into OS keystore</td>
+              <td><code>loopia accounts add work --username user@loopiaapi</code></td>
+            </tr>
+            <tr>
+              <td><code>login</code></td>
+              <td>Interactive login prompt</td>
+              <td><code>loopia login</code></td>
+            </tr>
+            <tr>
+              <td><code>domains list</code></td>
+              <td>List all registered domains in account</td>
+              <td><code>loopia domains list -a work</code></td>
+            </tr>
+            <tr>
+              <td><code>domains check</code></td>
+              <td>Check if a domain is available for registration</td>
+              <td><code>loopia domains check --domain example.se -a work</code></td>
+            </tr>
+            <tr>
+              <td><code>domains order</code></td>
+              <td>Register a new domain name</td>
+              <td><code>loopia domains order --domain example.se --accept-terms -a work</code></td>
+            </tr>
+            <tr>
+              <td><code>domains nameservers</code></td>
+              <td>Update name servers for a domain</td>
+              <td><code>loopia domains nameservers --domain example.se --nameserver ns1.loopia.se --nameserver ns2.loopia.se -a work</code></td>
+            </tr>
+            <tr>
+              <td><code>subdomains list</code></td>
+              <td>List subdomains under a domain</td>
+              <td><code>loopia subdomains list --domain example.se -a work</code></td>
+            </tr>
+            <tr>
+              <td><code>records list</code></td>
+              <td>List DNS records for a domain / subdomain</td>
+              <td><code>loopia records list --domain example.se --subdomain @ -a work</code></td>
+            </tr>
+            <tr>
+              <td><code>records add</code></td>
+              <td>Add a DNS zone record</td>
+              <td><code>loopia records add --domain example.se --type A --rdata 192.0.2.1 -a work</code></td>
+            </tr>
+            <tr>
+              <td><code>billing credits</code></td>
+              <td>Query LoopiaPrePAID balance</td>
+              <td><code>loopia billing credits -a work</code></td>
+            </tr>
+            <tr>
+              <td><code>billing unpaid-invoices</code></td>
+              <td>List all unpaid invoices</td>
+              <td><code>loopia billing unpaid-invoices -a work</code></td>
+            </tr>
+            <tr>
+              <td><code>reseller customers</code></td>
+              <td>List customers connected to reseller account</td>
+              <td><code>loopia reseller customers -a work</code></td>
+            </tr>
+            <tr>
+              <td><code>agent-readme</code></td>
+              <td>Print the agent operating manual</td>
+              <td><code>loopia agent-readme --json</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div>
+        <strong>Loopia CLI</strong> · Open-source software released under the MIT License by <a href="https://github.com/SpaceCorps" style="color: var(--text); text-decoration: none;">SpaceCorps</a>.
+      </div>
+      <div class="footer-links">
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="pricing.md">Pricing</a>
+        <a href="auth.md">Authentication</a>
+        <a href="llms.txt">llms.txt</a>
+        <a href="sitemap.xml">Sitemap</a>
+        <a href="https://github.com/SpaceCorps/Loopia-Cli" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

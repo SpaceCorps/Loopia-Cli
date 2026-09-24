@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About · Loopia CLI</title>
+  <meta name="description" content="About Loopia CLI: An open source native Rust command-line tool and agent interface for the Loopia XML-RPC API.">
+  <link rel="canonical" href="https://spacecorps.github.io/Loopia-Cli/about.html">
+  <meta property="og:title" content="About · Loopia CLI">
+  <meta property="og:description" content="About Loopia CLI: An open source native Rust command-line tool and agent interface for the Loopia XML-RPC API.">
+  <meta property="og:url" content="https://spacecorps.github.io/Loopia-Cli/about.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://spacecorps.github.io/Loopia-Cli/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="is-agentic-site-type" content="content">
+  <style>
+    body { background: #090d16; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.7; padding: 40px 20px; }
+    .content-box { max-width: 800px; margin: 0 auto; background: rgba(22, 27, 46, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 40px; }
+    h1 { font-size: 2.2rem; margin-bottom: 20px; color: #fff; }
+    h2 { font-size: 1.4rem; margin-top: 30px; margin-bottom: 12px; color: #38bdf8; }
+    p { margin-bottom: 16px; color: #94a3b8; }
+    a { color: #38bdf8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .back { display: inline-block; margin-bottom: 24px; color: #6366f1; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="content-box">
+    <a href="./" class="back">&larr; Back to Loopia CLI</a>
+    <h1>About Loopia CLI</h1>
+    
+    <p>Loopia CLI is a high-performance, open-source command-line tool and programmatic automation interface designed for Loopia, Sweden's premier domain registrar and cloud hosting provider. Maintained under the SpaceCorps open-source engineering collective, the project originated to provide developers, system administrators, and autonomous AI agents with a single, standalone binary capable of managing domains, DNS records, invoices, and reseller accounts with native speed and zero runtime dependencies.</p>
+
+    <h2>Project Mission & Origins</h2>
+    <p>The original prototype CLI tool (<code>Loopia.Console</code>) was implemented in C# by Niels Bosma. While functional, modern cloud automation and autonomous agent workflows require near-instantaneous startup times (1–3 milliseconds) without requiring the .NET runtime to be pre-installed. In 2026, the CLI was completely re-architected in Rust 2024 to deliver maximum performance, static compilation, native OS keystore security, and deterministic error envelopes designed specifically for LLM tool-calling loops.</p>
+
+    <h2>Architectural Principles</h2>
+    <p>Loopia CLI adheres strictly to three core tenets: security, determinism, and speed. Passwords and credentials never touch disk in plaintext by default—they are delegated to the native OS credential store (macOS Keychain, Windows DPAPI, or Linux Secret Service). For scripting and agent workflows, the CLI defaults to human-readable YAML with an explicit <code>--json</code> flag for piped operations and jq filters.</p>
+
+    <h2>Compatibility & API Support</h2>
+    <p>Loopia CLI communicates directly with the Loopia XML-RPC API (<code>https://api.loopia.se/RPCSERV</code>), providing complete coverage for domain operations (registration, transfer, nameservers), subdomain routing, DNS zone record management (A, AAAA, CNAME, MX, TXT, NS, SRV, CAA), billing/credits/invoices, and full reseller operations.</p>
+  </div>
+</body>
+</html>

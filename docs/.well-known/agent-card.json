@@ -1,0 +1,17 @@
+{
+  "name": "Loopia CLI Agent",
+  "description": "Agent interface and domain/DNS automation tool for the Loopia XML-RPC API.",
+  "url": "https://spacecorps.github.io/Loopia-Cli/",
+  "version": "1.0.0",
+  "capabilities": ["domains", "subdomains", "dns", "records", "billing", "invoices", "reseller"],
+  "skills": [
+    {
+      "name": "loopia-cli",
+      "url": "https://spacecorps.github.io/Loopia-Cli/llms.txt"
+    }
+  ],
+  "contact": {
+    "email": "contact@spacecorps.dev",
+    "url": "https://spacecorps.github.io/Loopia-Cli/contact.html"
+  }
+}

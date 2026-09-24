@@ -1,0 +1,42 @@
+# Loopia CLI - Comprehensive Agent Reference Manual
+
+> An exhaustive technical manual for autonomous agents driving the Loopia CLI (`loopia`). Covers all endpoints of the Loopia XML-RPC API.
+
+## When To Use This Tool
+- Automated domain registration, domain transfer, and nameserver orchestration.
+- Automated creation and renewal of DNS zone records for web applications, SSL/TLS challenge records (ACME/Let's Encrypt), and mail routing.
+- Subdomain routing and lifecycle management.
+- Checking LoopiaPrePAID balances and paying invoices programmatically.
+- Automated provisioning of customer sub-accounts for hosting resellers.
+- Continuous deployment pipelines requiring automated DNS record updates.
+
+## Exit Codes and Error Envelopes
+
+Every error response on stderr conforms to the standard envelope structure:
+```json
+{
+  "code": "error_code_string",
+  "message": "Human readable summary",
+  "detail": "Extended debugging context",
+  "remediation": "Exact command or action needed to fix"
+}
+```
+
+Exit code numbers match the error code contract:
+- `0`: Success
+- `1`: `error` - Unclassified failure
+- `2`: `network` - Transport failure or connection timeout (retry once)
+- `3`: `auth_required` - Invalid credentials, bad password, or forbidden
+- `4`: `not_found` - Resource does not exist
+- `5`: `rate_limited` - API rate limit reached (back off)
+- `6`: `invalid_input` - Bad command flags, missing arguments, or API BAD_INDATA
+- `7`: `no_account` - `--account <name>` not found or none specified
+
+## Safety Guardrails
+
+1. **Destructive Operations**:
+   Removals (`domains remove`, `subdomains remove`, `records remove`) are immediate and irreversible. Verify parameters before executing.
+2. **Account Scoping**:
+   Use `--account <name>` or configure a default account. For automated CI/CD runners, `LOOPIA_API_USERNAME` and `LOOPIA_API_PASSWORD` can be provided via environment variables.
+3. **Secrets Isolation**:
+   Loopia passwords are stored in the host operating system's hardware-backed credential vault (macOS Keychain, Windows DPAPI, Linux Secret Service).

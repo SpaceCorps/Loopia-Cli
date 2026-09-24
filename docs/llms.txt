@@ -1,0 +1,70 @@
+# Loopia CLI
+
+> A blazing fast native command-line tool and agent interface for the Loopia XML-RPC API. Built in Rust 2024 for developers, sysadmins, and autonomous AI agents.
+
+## When to Use This CLI
+
+Use the `loopia` CLI whenever you need to:
+- **Manage domain names:** List domains, query registration details, check availability, order new domains, add existing domains, transfer domains with auth codes, remove domains, or update nameservers.
+- **Configure subdomains:** Attach subdomains to domains or remove existing subdomains.
+- **Maintain DNS zone records:** Add, update, list, and delete DNS records (A, AAAA, CNAME, MX, TXT, NS, SRV, CAA) across root (@) and subdomains.
+- **Check billing & invoices:** Query PrePAID credit balances, list unpaid invoices, inspect invoice details, and pay invoices using credits.
+- **Reseller account operations:** List sub-customers, provision new accounts with contact records, track order status, and transfer credits between customer accounts.
+- **Agentic automation:** Drive DNS changes, domain registrations, and renewals programmatically via `--json` output and deterministic error exit codes.
+
+Do NOT use this tool if:
+- You need graphical web administration (use the Loopia Kundzon at https://www.loopia.se instead).
+- You are interacting with non-Loopia DNS providers (e.g. Cloudflare, Route53).
+
+## Core Agent Operating Principles
+
+1. **Explicit Account Selection:** Pass `--account <name>` (short `-a <name>`) or configure a default account. This guarantees multi-account safety and prevents accidental modifications.
+2. **First-Time Setup:** Run `loopia login` or `loopia accounts add <name> --username <user>` to store credentials securely in the host OS keystore (Keychain, DPAPI, libsecret).
+3. **Machine-Readable Outputs:** Always supply `--json` when parsing command results in scripts or LLM tool-calling loops.
+4. **Deterministic Exit Codes:** Non-zero exit codes carry structured error envelopes with stable machine-readable codes (`no_account`, `auth_required`, `not_found`, `rate_limited`, `invalid_input`).
+
+## Key Command Patterns
+
+### Authentication & Accounts
+- `loopia accounts list`: List all configured accounts and keystore storage backend.
+- `loopia accounts add <name> --username <user> [--password <pass>]`: Store credentials in OS keystore.
+- `loopia login [<name>]`: Interactive login prompt.
+- `loopia accounts test <name>`: Verify connectivity and credentials against the Loopia XML-RPC API.
+- `loopia accounts remove <name> --yes`: Remove account from keystore.
+
+### Domains
+- `loopia domains list -a <account> --json`: List all domains in account.
+- `loopia domains get --domain <domain> -a <account> --json`: Get billing and status details.
+- `loopia domains check --domain <domain> -a <account> --json`: Check if domain is available.
+- `loopia domains order --domain <domain> --accept-terms -a <account>`: Register a new domain.
+- `loopia domains transfer --domain <domain> --auth-code <code> -a <account>`: Transfer a domain.
+- `loopia domains nameservers --domain <domain> --nameserver ns1.loopia.se --nameserver ns2.loopia.se -a <account>`: Update name servers.
+
+### Subdomains
+- `loopia subdomains list --domain <domain> -a <account> --json`: List subdomains.
+- `loopia subdomains add --domain <domain> --subdomain <subdomain> -a <account>`: Add subdomain.
+- `loopia subdomains remove --domain <domain> --subdomain <subdomain> -a <account>`: Remove subdomain.
+
+### DNS Records
+- `loopia records list --domain <domain> [--subdomain @] -a <account> --json`: List zone records.
+- `loopia records add --domain <domain> [--subdomain @] --type A --rdata <ip> [--ttl 3600] -a <account>`: Add record.
+- `loopia records update --domain <domain> --record-id <id> --type A --rdata <ip> -a <account>`: Update record.
+- `loopia records remove --domain <domain> --record-id <id> -a <account>`: Delete record.
+
+### Billing & Invoices
+- `loopia billing credits [--with-vat] -a <account> --json`: Query PrePAID balance.
+- `loopia billing unpaid-invoices [--with-vat] -a <account> --json`: List unpaid invoices.
+- `loopia billing invoice --reference-no <ref> -a <account> --json`: Get single invoice.
+- `loopia billing pay-invoice --reference-no <ref> -a <account>`: Pay invoice using credits.
+
+### Reseller Operations
+- `loopia reseller customers -a <account> --json`: List customer accounts.
+- `loopia reseller create-account --domain <domain> --account-type <type> ... -a <account>`: Create customer account.
+- `loopia reseller order-status --order-reference <ref> -a <account> --json`: Query order status.
+- `loopia reseller transfer-credits --from <cust1> --to <cust2> --amount <amt> -a <account>`: Transfer credits.
+
+## API Specification & Documentation
+- Documentation Website: https://spacecorps.github.io/Loopia-Cli/
+- Detailed Agent Manual: https://spacecorps.github.io/Loopia-Cli/llms-full.txt
+- GitHub Repository: https://github.com/SpaceCorps/Loopia-Cli
+- Loopia API Docs: https://www.loopia.se/loopiaapi/
