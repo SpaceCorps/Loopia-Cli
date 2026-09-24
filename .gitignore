@@ -5,3 +5,5 @@ obj/
 .vs/
 nupkgs/
 nupkg/
+target/
+.DS_Store
