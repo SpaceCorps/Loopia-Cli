@@ -1,156 +1,235 @@
 # Loopia CLI
 
-A command-line tool for the [Loopia](https://www.loopia.se) XML-RPC API. Manage your domains, subdomains, DNS zone records, and billing from the terminal.
+[![Release](https://img.shields.io/github/v/release/SpaceCorps/Loopia-Cli?color=blue&label=version)](https://github.com/SpaceCorps/Loopia-Cli/releases/latest)
+[![CI](https://github.com/SpaceCorps/Loopia-Cli/actions/workflows/ci.yml/badge.svg)](https://github.com/SpaceCorps/Loopia-Cli/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-online-success)](https://spacecorps.github.io/Loopia-Cli/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+A blazing fast, native command-line tool and autonomous agent interface for the [Loopia](https://www.loopia.se) XML-RPC API (`https://api.loopia.se/RPCSERV`). Built in Rust 2024 for modern developers, DevOps automation, and autonomous AI coding workflows.
+
+---
+
+## Highlights
+
+- ⚡ **Sub-3ms Startup**: Compiled as a native static binary with zero runtime dependencies. Executes in ~1–3 ms (unlike legacy .NET/runtime-bound tools).
+- 🔐 **OS Keystore Integration**: `loopia login` prompts securely and stores API passwords in native OS vaults (macOS Keychain, Linux Secret Service / Keyutils, Windows DPAPI).
+- 🌐 **Complete XML-RPC Surface**: Full management of domains, subdomains, DNS zone records (A, AAAA, CNAME, TXT, MX, etc.), invoices/billing, and reseller operations.
+- 🤖 **AI Agent Native**: Machine-readable `--json` output, standardized error envelopes with stable exit codes (0–7), and built-in `loopia agent-readme`.
+- 🏢 **Multi-Account & Reseller First**: Switch accounts with `-a <name>` or `LOOPIA_ACCOUNT`, or manage sub-clients using `--customer-number`.
+
+---
 
 ## Installation
 
+### Using Cargo
+
 ```bash
-dotnet tool install -g Loopia.Console
+cargo install --git https://github.com/SpaceCorps/Loopia-Cli --locked
 ```
 
-## Authentication
+### Pre-built Standalone Binaries
 
-Create an API user in the Loopia Customer Zone or Reseller Zone under **Account settings → LoopiaAPI**.
+Download standalone binary archives directly from the [GitHub Releases](https://github.com/SpaceCorps/Loopia-Cli/releases/latest) page:
 
-### Stored accounts (recommended)
+| Platform | Architecture | Binary Package |
+|:---|:---|:---|
+| **macOS** | Apple Silicon (`aarch64`) | [`loopia-v1.0.0-aarch64-apple-darwin.tar.gz`](https://github.com/SpaceCorps/Loopia-Cli/releases/download/v1.0.0/loopia-v1.0.0-aarch64-apple-darwin.tar.gz) |
+| **macOS** | Intel (`x86_64`) | [`loopia-v1.0.0-x86_64-apple-darwin.tar.gz`](https://github.com/SpaceCorps/Loopia-Cli/releases/download/v1.0.0/loopia-v1.0.0-x86_64-apple-darwin.tar.gz) |
+| **Linux** | x86_64 (musl static) | [`loopia-v1.0.0-x86_64-unknown-linux-musl.tar.gz`](https://github.com/SpaceCorps/Loopia-Cli/releases/download/v1.0.0/loopia-v1.0.0-x86_64-unknown-linux-musl.tar.gz) |
+| **Windows**| x64 (MSVC) | [`loopia-v1.0.0-x86_64-pc-windows-msvc.zip`](https://github.com/SpaceCorps/Loopia-Cli/releases/download/v1.0.0/loopia-v1.0.0-x86_64-pc-windows-msvc.zip) |
 
-Save each set of credentials once under a name, then pick one per command with `--account`:
+---
+
+## Quickstart
+
+### 1. Authenticate
+
+Authenticate interactively to save your API credentials to the OS vault:
 
 ```bash
-loopia account create ivy      --username ivy@loopiaapi
-loopia account create filestar --username filestar@loopiaapi
-loopia account create bosma    --username bosma@loopiaapi --default
+# Interactive login (saved under default account)
+loopia login -u user@example.com
 
-loopia domains list --account ivy
-loopia records list --account filestar --domain example.com --subdomain @
-loopia domains list -a bosma
+# Login to a named account
+loopia login production -u prod@example.com
+
+# Headless / CI pipeline login (reads password from stdin without shell history trace)
+echo "$LOOPIA_PASSWORD" | loopia login ci -u user@example.com --password-stdin
 ```
 
-Leaving out `--password` prompts for it without echoing it. Passwords are never written in
-plain text: on Windows they are encrypted with DPAPI, bound to the current Windows user, and
-on Linux and macOS with AES-GCM using a key file that only your account can read. The store
-lives at `%APPDATA%\loopia\accounts.json` (`~/.config/loopia/accounts.json` on Linux and
-macOS); `LOOPIA_CONFIG_DIR` moves it elsewhere.
-
-Because the encryption is tied to your user account, the store is not portable — copy it to
-another machine or user and the passwords will no longer decrypt.
+### 2. Inspect Domains & Subdomains
 
 ```bash
-loopia account list            # show the stored accounts, never their passwords
-loopia account list --paths    # also show where they live and how they are encrypted
-loopia account delete ivy      # remove one
-```
-
-When no `--account` is given, the CLI uses the account marked `--default`, or the only stored
-account when there is just one. `LOOPIA_ACCOUNT` selects an account too.
-
-### Environment variables
-
-```bash
-export LOOPIA_API_USERNAME=user@loopiaapi
-export LOOPIA_API_PASSWORD=your-password
-```
-
-### Command-line options
-
-```bash
-loopia domains list --username user@loopiaapi --password your-password
-```
-
-Credentials are resolved in that order of precedence: explicit options first, then the
-selected stored account, then the environment variables.
-
-Resellers acting on a customer's account can supply a customer number via `--customer-number`,
-`LOOPIA_CUSTOMER_NUMBER` or `loopia account create --customer-number`. The endpoint defaults to
-`https://api.loopia.se/RPCSERV` and can be overridden with `--endpoint`, `LOOPIA_API_ENDPOINT`
-or `loopia account create --endpoint`.
-
-## Usage
-
-```bash
-loopia <command> [options]
-```
-
-### Commands
-
-| Command | Description |
-|---------|-------------|
-| **Accounts** | |
-| `account list` | List the stored accounts |
-| `account create` | Store the credentials of a Loopia account under a name |
-| `account delete` | Delete a stored account |
-| **Domains** | |
-| `domains list` | List all domain names in the account |
-| `domains get` | Get billing and registration details for a domain |
-| `domains check` | Check whether a domain name is available for registration |
-| `domains order` | Register a new domain name |
-| `domains add` | Add an already registered domain to the account |
-| `domains transfer` | Transfer a domain to Loopia using an auth code |
-| `domains remove` | Remove or deactivate a domain |
-| `domains nameservers` | Set the name servers for a domain |
-| **Subdomains** | |
-| `subdomains list` | List the subdomains of a domain |
-| `subdomains add` | Connect a subdomain to a domain |
-| `subdomains remove` | Remove a subdomain |
-| **Records** | |
-| `records list` | List the zone records of a subdomain |
-| `records add` | Add a zone record |
-| `records update` | Update a zone record |
-| `records remove` | Remove a zone record |
-| **Billing** | |
-| `billing credits` | Get the LoopiaPrePAID balance |
-| `billing unpaid-invoices` | List unpaid invoices |
-| `billing invoice` | Get a single invoice by reference number |
-| `billing pay-invoice` | Pay an invoice using LoopiaPrePAID credits |
-| **Reseller** | |
-| `reseller customers` | List the customers connected to the reseller account |
-| `reseller create-account` | Create a new Loopia account, optionally registering its domain |
-| `reseller order-status` | Get the status of an account creation order |
-| `reseller transfer-credits` | Transfer credits between two customer accounts |
-
-### Examples
-
-```bash
-# List your domains
+# List all registered domains in your account
 loopia domains list
 
-# Check availability and register
-loopia domains check --domain example.se
-loopia domains order --domain example.se --accept-terms
+# Check domain availability
+loopia domains check -d example.com
 
-# Point the apex at a server
-loopia records add --domain example.se --type A --rdata 93.188.0.1
+# List subdomains for a domain
+loopia subdomains list -d example.com
 
-# Add mail routing on a subdomain
-loopia records add --domain example.se --subdomain mail --type MX \
-  --rdata mailcluster.loopia.se --priority 10
-
-# Update a record found via 'records list'
-loopia records update --domain example.se --record-id 12345 \
-  --type A --rdata 93.188.0.2 --ttl 300
-
-# Delegate a domain to external name servers
-loopia domains nameservers --domain example.se \
-  --nameserver ns1.example.net --nameserver ns2.example.net
-
-# Check your prepaid balance and settle an invoice
-loopia billing credits
-loopia billing unpaid-invoices
-loopia billing pay-invoice --reference-no 123456
+# Add a new subdomain
+loopia subdomains add -d example.com -s api
 ```
 
-> Zone records are always addressed by domain plus subdomain. `--subdomain` defaults to `@`, which is the domain itself.
+### 3. Manage DNS Zone Records
 
-## Output
+```bash
+# List all DNS records for a subdomain
+loopia records list -d example.com -s www
 
-All read commands output YAML, using the field names Loopia returns, for easy reading and scripting. Write commands print a confirmation and exit non-zero when Loopia reports a status other than `OK`.
+# Add an A record
+loopia records add -d example.com -s @ --type A --value 192.0.2.1 --ttl 3600
 
-`domains check` is the exception to that rule: it exits `0` when the domain is available and `1` when it is taken, so it can be used directly in a shell condition.
+# Add a TXT verification record
+loopia records add -d example.com -s @ --type TXT --value "v=spf1 include:_spf.loopia.se ~all" --ttl 3600
 
-## Rate limits
+# Update an existing record
+loopia records update -d example.com -s @ --record-id 12345 --type A --value 192.0.2.2 --ttl 300
 
-Loopia allows up to 60 API calls per minute, of which at most 15 may be domain searches (`domains check`).
+# Remove a record
+loopia records remove -d example.com -s @ --record-id 12345
+```
 
-## License
+### 4. Billing & Invoices
 
-MIT
+```bash
+# List all unpaid invoices
+loopia billing invoices
+
+# Inspect an invoice
+loopia billing invoice --reference 12345678
+
+# Pay an invoice using account credit balance
+loopia billing pay-invoice --reference 12345678
+```
+
+---
+
+## Command Reference
+
+Every command that accesses the API accepts `--account <name>` (short `-a <name>`). Reseller commands accept `--customer-number <id>`.
+
+### Authentication & Accounts
+
+| Command | Description |
+|:---|:---|
+| `loopia login [name]` | Authenticate with username and password; stores password in OS vault |
+| `loopia accounts list [--check]` | List configured accounts (pass `--check` to verify credentials against API) |
+| `loopia accounts add <name>` | Manually register an account and store password in OS vault |
+| `loopia accounts remove <name>` | Remove an account and purge its credentials from the local vault |
+| `loopia accounts default <name>` | Set the active default account |
+
+### Domains & Subdomains
+
+| Command | Description |
+|:---|:---|
+| `loopia domains list` | List all registered domains |
+| `loopia domains get -d <domain>` | Get detailed status and expiration for a domain |
+| `loopia domains check -d <domain>` | Check if a domain is available for registration |
+| `loopia subdomains list -d <domain>` | List subdomains for a domain |
+| `loopia subdomains add -d <domain> -s <subdomain>` | Create a new subdomain |
+| `loopia subdomains remove -d <domain> -s <subdomain>` | Delete a subdomain and its DNS records |
+
+### DNS Zone Records
+
+| Command | Description |
+|:---|:---|
+| `loopia records list -d <domain> -s <subdomain>` | List all DNS records for a subdomain |
+| `loopia records get -d <domain> -s <subdomain> -r <id>` | Fetch a specific DNS record by record ID |
+| `loopia records add -d <domain> -s <subdomain> --type <t> --value <v> [--ttl <s>] [--priority <p>]` | Add a DNS record (A, AAAA, CNAME, TXT, MX, SRV, etc.) |
+| `loopia records update -d <domain> -s <subdomain> -r <id> --type <t> --value <v> [--ttl <s>] [--priority <p>]` | Update an existing DNS record |
+| `loopia records remove -d <domain> -s <subdomain> -r <id>` | Delete a DNS record |
+
+### Billing & Invoices
+
+| Command | Description |
+|:---|:---|
+| `loopia billing invoices` | List all unpaid invoices |
+| `loopia billing invoice --reference <ref>` | Get details and line items for an invoice |
+| `loopia billing pay-invoice --reference <ref>` | Pay an unpaid invoice using prepaid account credits |
+
+### Reseller Operations
+
+| Command | Description |
+|:---|:---|
+| `loopia reseller customers` | List all sub-customers managed by this reseller account |
+| `loopia reseller check-domain -d <domain>` | Check domain availability globally across TLDs |
+| `loopia reseller order-status --order-id <id>` | Check fulfillment and provisioning status of an order |
+| `loopia reseller transfer-credits --to-customer <id> --amount <n> --currency <c>` | Transfer credits between accounts |
+
+### Agent & Discovery
+
+| Command | Description |
+|:---|:---|
+| `loopia agent-readme` | Output comprehensive Markdown agent guidance manual |
+| `loopia agent-readme --json` | Output machine-readable JSON agent schema, tools, and error codes |
+
+---
+
+## Output Formats & AI Agent Readiness
+
+Commands format stdout as clean YAML by default. Pass `--json` when parsing outputs with `jq`, Python, or LLM tool-calling loops:
+
+```bash
+# Extract domain names with jq
+loopia domains list --json | jq -r '.[].domain'
+```
+
+### Machine-Readable Error Envelopes
+
+All errors are output to `stderr` as structured JSON/YAML envelopes with stable exit codes:
+
+```json
+{
+  "code": "auth_required",
+  "message": "Authentication failed for user user@example.com (AUTH_ERROR)",
+  "remediation": "Verify your credentials or re-run 'loopia login'."
+}
+```
+
+| Exit Code | Error Symbol | Handling Directive |
+|:---|:---|:---|
+| `0` | `ok` | Command completed successfully |
+| `1` | `error` | General failure or API returned an error status |
+| `2` | `network` | Network connectivity or HTTP timeout failure; retry with exponential backoff |
+| `3` | `auth_required` | Unauthenticated or invalid credentials; surface remediation to user |
+| `4` | `not_found` | Resource (domain, subdomain, record, invoice) does not exist; do not retry |
+| `5` | `rate_limited` | API rate limit reached; back off before retrying |
+| `6` | `invalid_input` | Parameter validation failed; fix input parameters before retrying |
+| `7` | `no_account` | Requested account not found in configuration or keystore |
+
+### Agent Manuals
+
+Inspect built-in agent guides directly from the CLI:
+
+```bash
+loopia agent-readme          # Human-readable markdown guide
+loopia agent-readme --json   # Machine-readable rules and schemas
+```
+
+For web-based LLMs and crawlers, refer to [llms.txt](https://spacecorps.github.io/Loopia-Cli/llms.txt) and [llms-full.txt](https://spacecorps.github.io/Loopia-Cli/llms-full.txt).
+
+---
+
+## Configuration & Environment Variables
+
+| Variable | Description | Default |
+|:---|:---|:---|
+| `LOOPIA_CONFIG_DIR` | Custom directory path for `config.yaml` | `~/.config/loopia` (or OS equivalent) |
+| `LOOPIA_SECRET_STORE` | Force specific credential store: `keychain`, `libsecret`, `dpapi`, `plaintext` | Auto-detected |
+| `LOOPIA_ALLOW_PLAINTEXT_STORE` | Set to `1` to allow a chmod 0600 file store on headless Linux without DBus | `0` |
+| `LOOPIA_API_URL` | Override the XML-RPC endpoint URL (useful for mock testing) | `https://api.loopia.se/RPCSERV` |
+| `LOOPIA_ACCOUNT` | Default account name to use if `-a` is not specified | `default` |
+| `LOOPIA_USERNAME` | Direct username override (bypasses keystore) | None |
+| `LOOPIA_PASSWORD` | Direct password override (bypasses keystore) | None |
+| `LOOPIA_CUSTOMER_NUMBER` | Default reseller customer number | None |
+
+---
+
+## Contributing & License
+
+Contributions are welcome! Please submit issues and pull requests to [SpaceCorps/Loopia-Cli](https://github.com/SpaceCorps/Loopia-Cli).
+
+Licensed under the [MIT License](LICENSE).
